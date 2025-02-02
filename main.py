@@ -40,6 +40,8 @@ def generate_answer(question: str, max_length: int, max_attempts: int = 10) -> s
     
     attempt = 1
     additional_instruction = ""  # 첫 시도에서는 추가 안내 없음
+    prev_missing = None  # 이전 부족 문자 수
+    prev_excess = None   # 이전 초과 문자 수
     while attempt <= max_attempts:
         logger.debug(f"답변 생성 시도: {attempt}회")
         try:
@@ -60,22 +62,44 @@ def generate_answer(question: str, max_length: int, max_attempts: int = 10) -> s
                 if answer_length < lower_bound:
                     missing_min = lower_bound - answer_length
                     missing_max = max_length - answer_length
-                    additional_instruction = (
-                        f"현재 생성된 답변이 {answer_length}자입니다. "
-                        f"최소 추가로 {missing_min}자에서 최대 {missing_max}자를 더 작성하여 전체 조건(총 {lower_bound}~{max_length}자)을 만족하도록 보완해 주세요.\n"
-                        f"현재까지 생성된 답변: {answer}\n"
-                    )
+                    if prev_missing is not None:
+                        additional_instruction = (
+                            f"이전에 부족했던 추가 문자 수는 {prev_missing}자였으나, "
+                            f"실제로 추가된 문자는 {prev_missing - missing_min}자였습니다. "
+                            f"그 차이는 {abs(missing_min)}자입니다.\n"
+                            f"현재 생성된 답변이 {answer_length}자입니다. "
+                            f"최소 추가로 {missing_min}자에서 최대 {missing_max}자를 더 작성하여 전체 조건(총 {lower_bound}~{max_length}자)을 만족하도록 보완해 주세요.\n"
+                            f"현재까지 생성된 답변: {answer}\n"
+                        )
+                    else:
+                        additional_instruction = (
+                            f"현재 생성된 답변이 {answer_length}자입니다. "
+                            f"최소 추가로 {missing_min}자에서 최대 {missing_max}자를 더 작성하여 전체 조건(총 {lower_bound}~{max_length}자)을 만족하도록 보완해 주세요.\n"
+                            f"현재까지 생성된 답변: {answer}\n"
+                        )
+                    prev_missing = missing_min
                     logger.warning(
                         f"생성된 답변 길이({answer_length}자)가 조건({lower_bound}-{max_length}자)에 맞지 않음. "
                         f"추가 안내: {additional_instruction.strip()}"
                     )
                 else:  # answer_length > max_length 인 경우
                     excess = answer_length - max_length
-                    additional_instruction = (
-                        f"현재 생성된 답변이 {answer_length}자입니다. "
-                        f"초과된 {excess}자를 제거하여 전체 조건(총 {lower_bound}~{max_length}자)을 만족하도록 보완해 주세요.\n"
-                        f"현재까지 생성된 답변: {answer}\n"
-                    )
+                    if prev_excess is not None:
+                        additional_instruction = (
+                            f"이전에 초과된 문자 수는 {prev_excess}자였으나, "
+                            f"실제로 제거된 문자는 {prev_excess - excess}자였습니다. "
+                            f"그 차이는 {abs(excess)}자입니다.\n"
+                            f"현재 생성된 답변이 {answer_length}자입니다. "
+                            f"초과된 {excess}자를 제거하여 전체 조건(총 {lower_bound}~{max_length}자)을 만족하도록 보완해 주세요.\n"
+                            f"현재까지 생성된 답변: {answer}\n"
+                        )
+                    else:
+                        additional_instruction = (
+                            f"현재 생성된 답변이 {answer_length}자입니다. "
+                            f"초과된 {excess}자를 제거하여 전체 조건(총 {lower_bound}~{max_length}자)을 만족하도록 보완해 주세요.\n"
+                            f"현재까지 생성된 답변: {answer}\n"
+                        )
+                    prev_excess = excess
                     logger.warning(
                         f"생성된 답변 길이({answer_length}자)가 조건({lower_bound}-{max_length}자)에 맞지 않음. "
                         f"추가 안내: {additional_instruction.strip()}"
