@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "jadongsoseol"
+version = "0.1.0"
+description = ""
+authors = ["oooo12-git <jhdmbwy12@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+openai = "^1.61.0"
+python-dotenv = "^1.0.1"
+langchain-openai = "^0.3.3"
+langchain = "^0.3.17"
+langchain-community = "^0.3.16"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
