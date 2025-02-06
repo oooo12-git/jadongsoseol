@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import logging
 import math
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain import PromptTemplate, LLMChain
 from dotenv import load_dotenv
+from typing import Tuple
+
 
 load_dotenv()
 
@@ -112,7 +114,7 @@ def generate_answer(question: str, max_length: int, max_attempts: int = 10) -> s
     logger.error(error_msg)
     raise ValueError(error_msg)
 
-def get_user_input() -> (str, int):
+def get_user_input() -> Tuple[str, int]:
     """
     사용자로부터 자기소개서 문항과 답변 최대 길이를 입력받는다.
     """
