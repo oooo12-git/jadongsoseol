@@ -88,6 +88,7 @@ def update_evaluation_sheet(data):
     update_sheet('evaluation!G2', [data['temperature']])
     update_sheet('evaluation!H2', [data['translation_model_name']])
     update_sheet('evaluation!I2', [data['translation_temperature']])
+    update_sheet('evaluation!J2', [data['cost']])
     update_sheet('evaluation!K2', [data['prompt_tokens']])
     update_sheet('evaluation!L2', [data['completion_tokens']])
     update_sheet('evaluation!M2', [data['total_tokens']])
@@ -96,3 +97,4 @@ def update_evaluation_sheet(data):
     update_sheet('evaluation!P2', [data['translation_total_tokens']])
     total_tokens = data['total_tokens'] + data['translation_total_tokens']
     update_sheet('evaluation!Q2', [total_tokens])
+    

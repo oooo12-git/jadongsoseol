@@ -1,3 +1,4 @@
 .env
 poetry.lock
 ordinal-nucleus-410201-4c3dceab17cd.json
+**/__pycache__/
