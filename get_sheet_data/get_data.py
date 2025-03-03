@@ -41,6 +41,7 @@ def get_last_data(data_type, range_str=None, spreadsheet_id=None):
             'prompt_structure': {'sheet': 'prompt_structure', 'column': 'B:B'},
             'model': {'sheet': 'model_setting', 'column': 'B:B'},
             'temperature': {'sheet': 'model_setting', 'column': 'C:C'},
+            'max_tokens': {'sheet': 'model_setting', 'column': 'D:D'},
             'translation_model': {'sheet': 'translation_model_setting', 'column': 'B:B'},
             'translation_temperature': {'sheet': 'translation_model_setting', 'column': 'C:C'}
         }

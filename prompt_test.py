@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from get_sheet_data.get_data import get_last_data
 from update_sheet_data.update_sheet import update_sheet, insert_row, update_index, update_evaluation_sheet
 from use_llm.generate import generate_cover_letter, translate_to_english
-from calculation_cost.cost import calculation_cost
+from calculation_cost.cost import calculation_cost, usd_to_krw
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -44,9 +44,11 @@ update_sheet('evaluation!C2', [prompt_english])
 # 자기소개서 작성
 temperature = get_last_data('temperature')
 model = get_last_data('model')
-result, completion_tokens, prompt_tokens, total_tokens, model_name = generate_cover_letter(prompt_english,model=model,temperature=temperature)
+max_tokens = get_last_data('max_tokens')
+result, completion_tokens, prompt_tokens, total_tokens, model_name = generate_cover_letter(prompt_english,model=model,temperature=temperature,max_tokens=max_tokens)
 
 cost = calculation_cost(model_name, translation_model_name, prompt_tokens, completion_tokens, translation_prompt_tokens, translation_completion_tokens)
+krw_cost = usd_to_krw(cost)
 
 data = {'result': result, 
         'model_name': model_name, 
@@ -59,8 +61,9 @@ data = {'result': result,
         'translation_prompt_tokens': translation_prompt_tokens,
         'translation_completion_tokens': translation_completion_tokens,
         'translation_total_tokens': translation_total_tokens,
-        'cost': cost}
-# 작성된 자기소개서를 구글 시트에 저장
+        'cost': cost,
+        'krw_cost': krw_cost}
+
 update_evaluation_sheet(data)
 
 logger.info("Successfully updated sheet")
