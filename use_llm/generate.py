@@ -15,7 +15,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 
-def generate_cover_letter(prompt, model="gpt-4o",temperature=1,max_tokens=4000):
+def generate_cover_letter(prompt, model="gpt-4o",temperature=1,max_tokens=4000, thinking=None, budget_tokens=None):
     """Langchain을 사용하여 자기소개서 작성"""
     try:
         logger.debug("Starting cover letter generation")
@@ -25,7 +25,7 @@ def generate_cover_letter(prompt, model="gpt-4o",temperature=1,max_tokens=4000):
         )
         
         # 모델 이름에 따라 적절한 LLM 클래스 선택
-        if model.startswith("gpt"):
+        if model.startswith("gpt") or model.startswith("o"):
             logger.debug(f"Using OpenAI model: {model}")
             llm = ChatOpenAI(model=model, temperature=temperature, max_tokens=max_tokens)
             
@@ -33,16 +33,23 @@ def generate_cover_letter(prompt, model="gpt-4o",temperature=1,max_tokens=4000):
             result = chain.invoke({"text": prompt})  # input 값을 dictionary로 전달
             logger.info(f"Result: {result}")
             content, completion_tokens, prompt_tokens, total_tokens, model_name = result.content, result.response_metadata['token_usage']['completion_tokens'], result.response_metadata['token_usage']['prompt_tokens'], result.response_metadata['token_usage']['total_tokens'], result.response_metadata['model_name']
-            return content, completion_tokens, prompt_tokens, total_tokens, model_name
+            return content, None, completion_tokens, prompt_tokens, total_tokens, model_name
     
         elif model.startswith("claude"):
             logger.debug(f"Using Anthropic model: {model}")
-            llm = ChatAnthropic(model=model, temperature=temperature, max_tokens=max_tokens)
+            if thinking == 'on':
+                thinking_param = {"type": "enabled", "budget_tokens": int(budget_tokens)}
+                llm = ChatAnthropic(model=model, temperature=temperature, max_tokens=max_tokens, thinking=thinking_param)
+            else:
+                llm = ChatAnthropic(model=model, temperature=temperature, max_tokens=max_tokens)
             chain = prompt_template | llm
             result = chain.invoke({"text": prompt})  # input 값을 dictionary로 전달
             logger.info(f"Result: {result}")
-            content, completion_tokens, prompt_tokens, total_tokens, model_name = result.content, result.usage_metadata['output_tokens'], result.usage_metadata['input_tokens'], result.usage_metadata['total_tokens'], result.response_metadata['model']
-            return content, completion_tokens, prompt_tokens, total_tokens, model_name
+            if thinking == 'on':
+                content,thinking_result ,completion_tokens, prompt_tokens, total_tokens, model_name = result.content[1]['text'], result.content[0]['thinking'],result.usage_metadata['output_tokens'], result.usage_metadata['input_tokens'], result.usage_metadata['total_tokens'], result.response_metadata['model']
+            else:
+                content,thinking_result,completion_tokens, prompt_tokens, total_tokens, model_name = result.content,None, result.usage_metadata['output_tokens'], result.usage_metadata['input_tokens'], result.usage_metadata['total_tokens'], result.response_metadata['model']
+            return content,thinking_result, completion_tokens, prompt_tokens, total_tokens, model_name
     except Exception as e:
         logger.error(f"Cover letter generation error: {str(e)}")
         raise
@@ -59,7 +66,7 @@ def translate_to_english(text, model="gpt-4o",temperature=0):
         ]
     )
         # 모델 이름에 따라 적절한 LLM 클래스 선택
-        if model.startswith("gpt"):
+        if model.startswith("gpt") or model.startswith("o"):
             logger.debug(f"Using OpenAI model: {model}")
             llm = ChatOpenAI(model=model, temperature=temperature)
         elif model.startswith("claude"):
